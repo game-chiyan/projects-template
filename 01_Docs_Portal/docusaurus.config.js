@@ -92,7 +92,7 @@ const projectDocs = fs
 
 const config = {
   title: 'Projects Docs',
-  url: 'https://example.com',
+  url: 'http://localhost:3000',
   baseUrl: '/',
 
   customFields: {

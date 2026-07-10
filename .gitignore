@@ -4,3 +4,6 @@
 # 共通管理するディレクトリだけ許可
 !/00_Template/
 !/01_Docs_Portal/
+
+# 独立したテンプレートリポジトリは親から追跡しない
+/00_Template/repository-template/

@@ -2,14 +2,14 @@
 
 - 対象: `~\Projects` 配下で Claude が作業する全セッション
 - 位置づけ: 本書 = Claude 向け入口。プロジェクト横断ルールの実体は `CROSS_PROJECT_RULES.md` に置く
-- 読み順: ①本書 → ②`CROSS_PROJECT_RULES.md` → ③対象プロジェクトの `PROJECT_RULES.md` → ④最新の引継ぎファイル
+- 読み順: ①本書 → ②`CROSS_PROJECT_RULES.md` → ③対象プロジェクトの `PROJECT_RULES.md` → ④最新の引継ぎファイル（存在する場合）
 - 優先順位: 記載が矛盾する場合は、対象プロジェクトの `PROJECT_RULES.md` → 本書のツール固有ルール → `CROSS_PROJECT_RULES.md` の順で優先する（具体 > 抽象）
 
 ## 参照する共通ルール
 
 - プロジェクト横断ルールは `CROSS_PROJECT_RULES.md` を読む
 - プロジェクト固有ルールは `~\Projects\<プロジェクト>\PROJECT_RULES.md` を読む
-- セッション開始時は、対象プロジェクトの最新引継ぎファイルを読む
+- セッション開始時は、対象プロジェクトの最新引継ぎファイルが存在する場合に読む
 
 ## Claude 固有ルール
 
