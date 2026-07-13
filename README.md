@@ -30,6 +30,7 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
 │  ├─ PROJECT_RULES.md
 │  └─ repository-template        # 独立したGitリポジトリ
 ├─ 01_Docs_Portal                # ローカル横断閲覧用Docusaurus
+├─ 02_Roles                      # 判断のための観点レンズ集
 └─ <プロジェクト>
    ├─ PROJECT_RULES.md
    ├─ handover
@@ -51,6 +52,10 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
 
 AIツールは対応する入口ファイル、`CROSS_PROJECT_RULES.md`、対象プロジェクトの`PROJECT_RULES.md`、存在する場合は最新の引継ぎファイルの順に読みます。
 
+## 判断レンズ（02_Roles）
+
+`02_Roles`は、判断を複数の専門家の観点（レンズ）から見るための共通資産です。重要な判断では、関連するレンズと批判者レンズ（`reviewer`）を併用してトレードオフを洗い出し、意見が割れたら判断軸（`_judgment-axis.md`）に照らして決めます。レンズは助言であり、最終判断は依頼者が下します。レンズ一覧や使い方は`~\Projects\02_Roles\README.md`、運用ルールは`CROSS_PROJECT_RULES.md`の「判断レンズ運用」を参照します。
+
 ## プロジェクト追加手順
 
 1. `~\Projects\<プロジェクト>\`を作成する
@@ -70,7 +75,7 @@ AIツールは対応する入口ファイル、`CROSS_PROJECT_RULES.md`、対象
 ~\Projects\<プロジェクト>\<リポジトリ>\docs\index.md
 ```
 
-`~\Projects\<プロジェクト>\docs\`は検出対象外です。`00_Template`と`01_Docs_Portal`もプロジェクト一覧から除外されます。
+`~\Projects\<プロジェクト>\docs\`は検出対象外です。`00_Template`・`01_Docs_Portal`・`02_Roles`もプロジェクト一覧から除外されます。
 
 コマンドプロンプトで次を実行します。
 
@@ -90,7 +95,7 @@ npm start
 
 ## Git管理
 
-ルート`.gitignore`は`Projects`直下のディレクトリを原則除外し、共通管理する`00_Template`と`01_Docs_Portal`だけを例外許可します。新しいプロジェクトを追加しても`.gitignore`の更新は不要です。
+ルート`.gitignore`は`Projects`直下のディレクトリを原則除外し、`NN_`（数字2桁＋`_`）で始まる進行用ディレクトリだけをパターン（`/[0-9][0-9]_*/`）で追跡許可します。新規プロジェクトの追加でも、`NN_`進行用ディレクトリの追加でも、`.gitignore`の更新は不要です。
 
 `00_Template\repository-template`は独立したGitリポジトリであり、親の`projects-template`では追跡しません。
 
