@@ -28,12 +28,18 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
 ├─ CROSS_PROJECT_RULES.md
 ├─ 00_Template
 │  ├─ PROJECT_RULES.md
+│  ├─ handover          # resume.md / worklog.md の雛形
 │  └─ repository-template        # 独立したGitリポジトリ
 ├─ 01_Docs_Portal                # ローカル横断閲覧用Docusaurus
 ├─ 02_Roles                      # 判断のための観点レンズ集
+├─ 03_Checks                     # 運用ルール自動チェック（run-checks.js）
+├─ 04_Rules_Reference            # 状況別ルールリファレンス（MCP・Cowork・オーケストレーション）
 └─ <プロジェクト>
    ├─ PROJECT_RULES.md
    ├─ handover
+   │  ├─ resume.md               # 現在の再開地点（上書き・常時最新）
+   │  ├─ worklog.md              # 作業履歴（追記専用）
+   │  └─ handover-YYYY-MM-DD.md  # 節目の保全・要約
    └─ <リポジトリ>
       ├─ docs
       │  └─ index.md             # 必須。ポータルのプロジェクトトップ
@@ -41,7 +47,7 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
       └─ .github\workflows
 ```
 
-`00_Template`はテンプレート保守用のため、引継ぎファイルを置きません。
+`00_Template`は共通ルールの保守と、新規プロジェクトの雛形（コピー元）を兼ねます。`handover\`には空の雛形（`resume.md`・`worklog.md`）だけを置き、実際の引継ぎ記録は保守作業では作成しません。
 
 ## ルールファイル
 
@@ -49,8 +55,9 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
 - `CLAUDE.md`: Claude向けの入口
 - `CROSS_PROJECT_RULES.md`: 全プロジェクト共通の横断ルール
 - `PROJECT_RULES.md`: 各プロジェクト固有のルール
+- `04_Rules_Reference\`: 状況別の詳細ルール（MCPファイル操作・Coworkサンドボックス・オーケストレーション）。入口ファイルの参照トリガー表から該当する状況のときに読む
 
-AIツールは対応する入口ファイル、`CROSS_PROJECT_RULES.md`、対象プロジェクトの`PROJECT_RULES.md`、存在する場合は最新の引継ぎファイルの順に読みます。
+AIツールは対応する入口ファイル、`CROSS_PROJECT_RULES.md`、対象プロジェクトの`PROJECT_RULES.md`、存在する場合は最新の引継ぎファイルの順に読みます。ルールはファイル別接頭辞＋3桁通し番号のID（例: `CR-024`）で識別し、失敗記録台帳や引継ぎファイルからはIDで参照します。
 
 ## 判断レンズ（02_Roles）
 
@@ -58,12 +65,11 @@ AIツールは対応する入口ファイル、`CROSS_PROJECT_RULES.md`、対象
 
 ## プロジェクト追加手順
 
-1. `~\Projects\<プロジェクト>\`を作成する
-2. `00_Template\PROJECT_RULES.md`を参考に、プロジェクト直下へ`PROJECT_RULES.md`を作成する
-3. 通常のプロジェクトでは`handover\`を作成する
-4. [game-chiyan/repository-template](https://github.com/game-chiyan/repository-template)の`Use this template`から新しいリポジトリを作成する
-5. 作成したリポジトリを`~\Projects\<プロジェクト>\<リポジトリ>\`へcloneする
-6. リポジトリの`README.md`と`docs\index.md`をプロジェクト用に更新する
+1. `00_Template`を`~\Projects\<プロジェクト>\`へコピーする（`repository-template`は除く）。これで`PROJECT_RULES.md`と`handover\`（`resume.md`・`worklog.md`の雛形）が揃う
+2. コピーした`PROJECT_RULES.md`をプロジェクト用に記入する
+3. [game-chiyan/repository-template](https://github.com/game-chiyan/repository-template)の`Use this template`から新しいリポジトリを作成する
+4. 作成したリポジトリを`~\Projects\<プロジェクト>\<リポジトリ>\`へcloneする
+5. リポジトリの`README.md`と`docs\index.md`をプロジェクト用に更新する
 
 リポジトリ作成後のGitHub Pages設定とブランチ運用は、`repository-template`のREADMEに従います。
 
@@ -109,10 +115,17 @@ npm start
 
 ## セッション引継ぎ
 
-通常のプロジェクトでは、セッション終了時に次の引継ぎファイルを作成します。
+通常のプロジェクトでは、`handover` ディレクトリに継続作業ログを2層で持ちます（`00_Template` では作成しません）。
+
+- `resume.md`: 現在の再開地点を1枚に上書き保存します（常に最新・短く保つ）。新規セッションは最初にこれを読みます
+- `worklog.md`: 作業履歴を追記専用で残します。作業ステップごとに追記するため、中断しても直前までの履歴が残ります
+
+作業ステップごとに追記・最新化することで、任意の AI ツール・任意のセッションへ、任意の時点で引き継げます。
+
+タスクや機能の完了など節目では、その区間を要約した保全用の引継ぎファイルを作成します。
 
 ```text
 ~\Projects\<プロジェクト>\handover\handover-YYYY-MM-DD[-N].md
 ```
 
-引継ぎファイルには、完了事項・次タスクの作業順・未解決事項・運用ノートを記載します。`00_Template`の保守作業では作成しません。
+保全用ファイルには、完了事項・次タスクの作業順・未解決事項・運用ノートを記載します。`00_Template` の保守作業では作成しません。

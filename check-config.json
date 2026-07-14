@@ -1,0 +1,11 @@
+{
+  "docChars": {
+    "excludePaths": [
+      "Auto_Trader/auto-trader/tools/tachibana-samples/"
+    ],
+    "fileAllowedChars": {
+      "04_Rules_Reference/mcp-file-ops.md": ["～", "１", "３", "＜", "圈", "隨"],
+      "03_Checks/README.md": ["～", "＜", "５"]
+    }
+  }
+}
