@@ -26,6 +26,7 @@ node 03_Checks\run-checks.js . --check=doc-chars  # チェック指定
 | doc-chars | Markdown の全角スペース・全角英数字・全角チルダ・U+FFFD（違反）、全角不等号・異体字黒リスト（警告） | CR-024, CL-003 / AG-003 / MF-009 |
 | unicode-escape | ソースコード中の `\uXXXX` エスケープ残存（設定があるプロジェクトのみ） | プロジェクト側規約（バイブコーディング時の混入防止） |
 | resume-freshness | `resume.md` 記載の更新時刻が `worklog.md` より古い場合に警告 | CR-054 |
+| glossary-terms | 定義済み用語の目印 U+1D33（ᴳ）が付いた語が用語集（`04_Rules_Reference/glossary.md`）に実在するかを検査（実在のみの逆向き検査。付与漏れは対象外。語の直後に付いた目印のみ対象で、字としての言及は除外） | CR-067 |
 
 ## 設定（check-config.json）
 
@@ -52,7 +53,7 @@ node 03_Checks\run-checks.js . --check=doc-chars  # チェック指定
 ## 既定の除外
 
 - ディレクトリ: `node_modules` / `.git` / `.docusaurus` / `.codex` / `.agents` / `build` / `dist` / `coverage`
-- ファイル: `handover-YYYY-MM-DD[-N].md`（過去時点の歴史記録。違反文字の引用を含むため）
+- ファイル: `handover-YYYY-MM-DD[-N].md` / `worklog.md` / `worklog-YYYY-MM.md`（追記専用の歴史記録。違反文字の引用を含むため。CR-054 / CR-059）
 
 ## 既知の制約
 
@@ -66,4 +67,4 @@ node 03_Checks\run-checks.js . --check=doc-chars  # チェック指定
 - 誤検出が出た場合: 意図的使用なら設定で許可、判定が割れるものは違反でなく警告に置く
 
 ---
-最終確認日: 2026-07-14
+最終確認日: 2026-07-16

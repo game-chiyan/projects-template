@@ -7,7 +7,7 @@
  *   違反を検出する。各チェックと対応ルールIDの一覧は同階層の README.md を参照。
  *
  * 使い方:
- *   node 03_Checks/run-checks.js <対象ディレクトリ> [--check=doc-chars,unicode-escape,resume-freshness]
+ *   node 03_Checks/run-checks.js <対象ディレクトリ> [--check=doc-chars,unicode-escape,resume-freshness,glossary-terms]
  *   例: node 03_Checks/run-checks.js .                    （Projects 全体）
  *       node 03_Checks/run-checks.js FF14_Fishing_Alert   （プロジェクト単位）
  *
@@ -149,8 +149,11 @@ function checkDocChars(targetDir, docCharsConfig) {
   const warnings = [];
   const files = collectFiles(
     targetDir,
-    // handover-*.md は過去時点の記録（違反文字の引用を含む歴史アーカイブ）のため既定で対象外
-    (name) => name.endsWith('.md') && !/^handover-.*\.md$/.test(name),
+    // handover-*.md と worklog.md / worklog-YYYY-MM.md は追記専用の歴史記録（違反文字の引用を含む）のため既定で対象外
+    (name) =>
+      name.endsWith('.md') &&
+      !/^handover-.*\.md$/.test(name) &&
+      !/^worklog(-\d{4}-\d{2})?\.md$/.test(name),
     true
   );
 
@@ -234,6 +237,73 @@ function checkUnicodeEscape(baseDir, config, reportPrefix) {
 }
 
 /**
+ * 用語集（glossary.md）から定義済み用語の集合を読み込む
+ * スクリプト位置基準で参照するため対象ディレクトリに依存しない
+ * @return {string[]} 定義済み用語の一覧
+ */
+function loadGlossaryTerms() {
+  const glossaryPath = path.join(__dirname, '..', '04_Rules_Reference', 'glossary.md');
+  if (!fs.existsSync(glossaryPath)) return [];
+  const TERM_SECTIONS = new Set(['セッション進行', '成果物・記録', '設計・品質']);
+  const terms = new Set();
+  let inTermSection = false;
+  for (const line of fs.readFileSync(glossaryPath, 'utf8').split('\n')) {
+    const heading = line.match(/^##\s+(.+?)\s*$/);
+    if (heading) {
+      inTermSection = TERM_SECTIONS.has(heading[1].trim());
+      continue;
+    }
+    if (!inTermSection) continue;
+    const entry = line.match(/^-\s+([^:：]+)[:：]/);
+    if (!entry) continue;
+    for (let part of entry[1].split('/')) {
+      part = part.replace(/（[^）]*）/g, '').trim();
+      if (part) terms.add(part);
+    }
+  }
+  return [...terms];
+}
+
+/**
+ * glossary-terms: 定義済み用語の目印 (U+1D33) が用語集にある語に付いているかを検査する
+ * 定義の意味かは機械判定できないため付与漏れは検査しない（実在のみの逆向き検査。CR-067）
+ * @param {string} targetDir - 対象ディレクトリの絶対パス
+ * @return {{violations: string[], warnings: string[]}} 検出結果
+ */
+function checkGlossaryTerms(targetDir) {
+  const violations = [];
+  const terms = loadGlossaryTerms();
+  if (terms.length === 0) return { violations, warnings: [] };
+  const MARK = 'ᴳ';
+  const files = collectFiles(
+    targetDir,
+    (name) =>
+      name.endsWith('.md') &&
+      !/^handover-.*\.md$/.test(name) &&
+      !/^worklog(-\d{4}-\d{2})?\.md$/.test(name),
+    true
+  );
+  for (const filePath of files) {
+    const relPath = path.relative(targetDir, filePath).split(path.sep).join('/');
+    const lines = fs.readFileSync(filePath, 'utf8').split('\n');
+    lines.forEach((lineText, lineIndex) => {
+      for (let idx = lineText.indexOf(MARK); idx !== -1; idx = lineText.indexOf(MARK, idx + 1)) {
+        const before = lineText.slice(0, idx);
+        const prevChar = before.slice(-1);
+        // 直前が語構成文字でなければ目印ではなく字としての言及（記法定義・引用）とみなし対象外
+        if (!prevChar || !/[\p{L}\p{N}-]/u.test(prevChar)) continue;
+        if (!terms.some((term) => before.endsWith(term))) {
+          violations.push(
+            `${relPath}:${lineIndex + 1}:${idx + 1}: [glossary-terms] 用語集にない語に目印 (U+1D33) が付与されている（CR-067）`
+          );
+        }
+      }
+    });
+  }
+  return { violations, warnings: [] };
+}
+
+/**
  * resume-freshness: resume.md の更新時刻の記載が worklog.md より古くないかを検知する
  * 時刻はローカルタイムゾーン前提のため、依頼者マシンでの実行を正とし警告のみとする（CR-054）
  * @param {string} targetDir - 対象ディレクトリの絶対パス
@@ -292,14 +362,14 @@ function main() {
   const args = process.argv.slice(2);
   const positional = args.filter((arg) => !arg.startsWith('--'));
   if (positional.length !== 1) {
-    console.error('使い方: node 03_Checks/run-checks.js <対象ディレクトリ> [--check=doc-chars,unicode-escape,resume-freshness]');
+    console.error('使い方: node 03_Checks/run-checks.js <対象ディレクトリ> [--check=doc-chars,unicode-escape,resume-freshness,glossary-terms]');
     process.exit(1);
   }
   const targetDir = path.resolve(positional[0]);
   const checkArg = args.find((arg) => arg.startsWith('--check='));
   const enabled = checkArg
     ? new Set(checkArg.replace('--check=', '').split(','))
-    : new Set(['doc-chars', 'unicode-escape', 'resume-freshness']);
+    : new Set(['doc-chars', 'unicode-escape', 'resume-freshness', 'glossary-terms']);
 
   const config = loadConfig(targetDir);
   const subConfigs = collectSubConfigs(targetDir);
@@ -324,6 +394,11 @@ function main() {
   }
   if (enabled.has('resume-freshness')) {
     const result = checkResumeFreshness(targetDir);
+    allViolations.push(...result.violations);
+    allWarnings.push(...result.warnings);
+  }
+  if (enabled.has('glossary-terms')) {
+    const result = checkGlossaryTerms(targetDir);
     allViolations.push(...result.violations);
     allWarnings.push(...result.warnings);
   }

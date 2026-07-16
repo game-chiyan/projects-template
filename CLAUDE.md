@@ -2,12 +2,12 @@
 
 - 対象: `~\Projects` 配下で Claude が作業する全セッション
 - 位置づけ: 本書 = Claude 向け入口（常時読み込むコア）。プロジェクト横断ルールの実体は `CROSS_PROJECT_RULES.md`、状況別の詳細ルールは `~\Projects\04_Rules_Reference\` に置き、本書の参照トリガー表から引く
-- 読み順: ①本書 → ②`CROSS_PROJECT_RULES.md` → ③対象プロジェクトの `PROJECT_RULES.md` → ④`resume.md`（あれば）→ 必要に応じ最新 handover / `worklog.md` 末尾
+- 読み順: ①本書 → ②`CROSS_PROJECT_RULES.md` → ③対象プロジェクトの `PROJECT_RULES.md` → ④`resume.md`（あれば）→ 必要に応じ最新 handoverᴳ / `worklog.md` 末尾
 - 優先順位: 記載が矛盾する場合は、対象プロジェクトの `PROJECT_RULES.md` → 本書・`04_Rules_Reference\` のツール固有ルール → `CROSS_PROJECT_RULES.md` の順で優先する（具体 > 抽象）
 
 ## セッション開始チェックリスト（実作業の前に順に完了させる）
 
-1. 読み順に従い、対象プロジェクトの状態を把握する（`PROJECT_RULES.md` → `resume.md` → 必要に応じ最新 handover / `worklog.md` 末尾）
+1. 読み順に従い、対象プロジェクトの状態を把握する（`PROJECT_RULES.md` → `resume.md` → 必要に応じ最新 handoverᴳ / `worklog.md` 末尾）
 2. CL-001: 最初の応答で、作業内容の把握と同時に必ずブランチ名候補とチャット名候補を提示する。ツール呼び出しやファイル編集等の実作業に着手する前に必ず完了させ、後回しにしない（`CROSS_PROJECT_RULES.md`「セッションルール」に規定はあったが、本項目として明記されていなかったため実行を後回しにする失敗が同一セッション内で2026-07-13に3回発生した）
 3. 参照トリガー表に該当する状況があれば、該当ファイルを先に読む
 
@@ -18,6 +18,8 @@
 | MCP ファイル操作（filesystem サーバ）を使う | `~\Projects\04_Rules_Reference\mcp-file-ops.md` |
 | Cowork（サンドボックス Bash）で作業する | `~\Projects\04_Rules_Reference\cowork-sandbox.md` |
 | サブエージェントへの委譲・オーケストレーション | `~\Projects\04_Rules_Reference\orchestration.md` |
+| セッションのフェーズᴳ進行 | `~\Projects\04_Rules_Reference\session-phases.md` |
+| 用語の意味・定義の所在を確認する | `~\Projects\04_Rules_Reference\glossary.md` |
 
 ## Claude 固有ルール
 

@@ -2,14 +2,14 @@
 
 - 対象: `~\Projects` 配下で Codex / OpenAI 系エージェントが作業する全セッション
 - 位置づけ: 本書 = Codex / OpenAI 系ツール向け入口。プロジェクト横断ルールの実体は `CROSS_PROJECT_RULES.md` に置く
-- 読み順: ①本書 → ②`CROSS_PROJECT_RULES.md` → ③対象プロジェクトの `PROJECT_RULES.md` → ④`resume.md`（あれば）→ 必要に応じ最新 handover / `worklog.md` 末尾
+- 読み順: ①本書 → ②`CROSS_PROJECT_RULES.md` → ③対象プロジェクトの `PROJECT_RULES.md` → ④`resume.md`（あれば）→ 必要に応じ最新 handoverᴳ / `worklog.md` 末尾
 - 優先順位: 記載が矛盾する場合は、対象プロジェクトの `PROJECT_RULES.md` → 本書のツール固有ルール → `CROSS_PROJECT_RULES.md` の順で優先する（具体 > 抽象）
 
 ## 参照する共通ルール
 
 - プロジェクト横断ルールは `CROSS_PROJECT_RULES.md` を読む
 - プロジェクト固有ルールは `~\Projects\<プロジェクト>\PROJECT_RULES.md` を読む
-- セッション開始時は、対象プロジェクトの `resume.md`（あれば）を読み、必要に応じ最新 handover と `worklog.md` 末尾を読む
+- セッション開始時は、対象プロジェクトの `resume.md`（あれば）を読み、必要に応じ最新 handoverᴳ と `worklog.md` 末尾を読む
 
 ## Codex / OpenAI 系ツール固有ルール
 
