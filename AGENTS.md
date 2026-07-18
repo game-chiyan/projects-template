@@ -2,25 +2,18 @@
 
 - 対象: `~\Projects` 配下で Codex / OpenAI 系エージェントが作業する全セッション
 - 位置づけ: 本書 = Codex / OpenAI 系ツール向け入口。プロジェクト横断ルールの実体は `CROSS_PROJECT_RULES.md` に置く
-- 読み順: ①本書 → ②`CROSS_PROJECT_RULES.md` → ③対象プロジェクトの `PROJECT_RULES.md` → ④`resume.md`（あれば）→ 必要に応じ最新 handoverᴳ / `worklog.md` 末尾
-- 優先順位: 記載が矛盾する場合は、対象プロジェクトの `PROJECT_RULES.md` → 本書のツール固有ルール → `CROSS_PROJECT_RULES.md` の順で優先する（具体 > 抽象）
-
-## 参照する共通ルール
-
-- プロジェクト横断ルールは `CROSS_PROJECT_RULES.md` を読む
-- プロジェクト固有ルールは `~\Projects\<プロジェクト>\PROJECT_RULES.md` を読む
-- セッション開始時は、対象プロジェクトの `resume.md`（あれば）を読み、必要に応じ最新 handoverᴳ と `worklog.md` 末尾を読む
+- 読み順: 本書 → `CROSS_PROJECT_RULES.md`。特定プロジェクトが対象の場合だけ `PROJECT_RULES.md` → `resume.md`（あれば）を読み、handoverᴳ / `worklog.md` は詳細確認が必要なときだけ参照する
+- 状況別の参照先は `~\Projects\04_Rules_Reference\README.md` の参照トリガーに従う
+- 優先順位は `CROSS_PROJECT_RULES.md` 冒頭に従う
 
 ## Codex / OpenAI 系ツール固有ルール
 
-- AG-001: ファイル編集前に、変更対象と変更方針を依頼者へ明示する
 - AG-002: ツール実行結果は依頼者には直接見えないため、重要な出力は要点を最終回答に記載する
-- AG-003: 日本語ファイルの編集後は、差分または編集後内容を確認して文字化け・異体字混入・全角半角の取り違えを点検する
 
 ## AGENTS.md を育てるルール（メタルール）
 
 1. AG-004: 追記トリガー: Codex / OpenAI 系ツール固有の失敗・制約・有効な回避策を発見した場合に追記候補とする
-2. AG-005: 分析様式: 「事象 → 原因 → 仕組み化」の3点で1件ずつ分析する。ルール本文は短文の行動形で書き、末尾に根拠を括弧書き（日付・事象）で残す
+2. AG-005: 分析様式は CR-002、本文の簡潔さは CR-010 に従う
 3. AG-006: 配置判定: ツール固有なら本書、全AIツール共通なら `CROSS_PROJECT_RULES.md`、特定プロジェクトだけなら `PROJECT_RULES.md` に置く
-4. AG-007: 更新フロー: 追記・変更・削除はすべて提案 → 依頼者承認後に反映する。採番は `CROSS_PROJECT_RULES.md` の ID採番ルールに従う
+4. AG-007: 更新フローは CR-005、採番は CR-013 に従う
 5. AG-008: 肥大化抑制: 本書は入口とツール固有差分だけに限定し、共通ルールを重複記載しない

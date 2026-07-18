@@ -26,6 +26,7 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
 ├─ AGENTS.md
 ├─ CLAUDE.md
 ├─ CROSS_PROJECT_RULES.md
+├─ incident-log.md              # 横断作業の失敗・指摘台帳
 ├─ 00_Template
 │  ├─ PROJECT_RULES.md
 │  ├─ handover          # resume.md / worklog.md の雛形
@@ -33,7 +34,7 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
 ├─ 01_Docs_Portal                # ローカル横断閲覧用Docusaurus
 ├─ 02_Roles                      # 判断のための観点レンズ集
 ├─ 03_Checks                     # 運用ルール自動チェック（run-checks.js）
-├─ 04_Rules_Reference            # 状況別ルールリファレンス（MCP・Cowork・オーケストレーション）
+├─ 04_Rules_Reference            # 規範索引・フェーズᴳ・用語・台帳雛形・状況別ルール
 └─ <プロジェクト>
    ├─ PROJECT_RULES.md
    ├─ handover
@@ -47,7 +48,7 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
       └─ .github\workflows
 ```
 
-`00_Template`は共通ルールの保守と、新規プロジェクトの雛形（コピー元）を兼ねます。`handover\`には空の雛形（`resume.md`・`worklog.md`）だけを置き、実際の引継ぎ記録は保守作業では作成しません。
+`00_Template`は新規プロジェクトの雛形（コピー元）です。横断ルールは`Projects`直下と`04_Rules_Reference\`で保守します。`handover\`には空の雛形（`resume.md`・`worklog.md`）だけを置き、実際の引継ぎ記録は保守作業では作成しません。
 
 ## ルールファイル
 
@@ -55,13 +56,15 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
 - `CLAUDE.md`: Claude向けの入口
 - `CROSS_PROJECT_RULES.md`: 全プロジェクト共通の横断ルール
 - `PROJECT_RULES.md`: 各プロジェクト固有のルール
-- `04_Rules_Reference\`: 状況別の詳細ルール（MCPファイル操作・Coworkサンドボックス・オーケストレーション）。入口ファイルの参照トリガー表から該当する状況のときに読む
+- `04_Rules_Reference\README.md`: 文書の役割・正ᴳ・参照トリガーを示す規範索引
+- `04_Rules_Reference\`: セッションフェーズᴳ、用語集、失敗台帳雛形、MCPファイル操作、Coworkサンドボックス、オーケストレーション等の詳細
+- `incident-log.md`: プロジェクトに属さない横断作業で発生した失敗・指摘の台帳
 
-AIツールは対応する入口ファイル、`CROSS_PROJECT_RULES.md`、対象プロジェクトの`PROJECT_RULES.md`、存在する場合は最新の引継ぎファイルの順に読みます。ルールはファイル別接頭辞＋3桁通し番号のID（例: `CR-024`）で識別し、失敗記録台帳や引継ぎファイルからはIDで参照します。
+AIツールは対応する入口ファイルと`CROSS_PROJECT_RULES.md`を読みます。特定プロジェクトが対象の場合だけ`PROJECT_RULES.md`と`resume.md`を追加で読み、handoverᴳ・`worklog.md`は詳細確認が必要なときだけ参照します。状況別資料は`04_Rules_Reference\README.md`の参照トリガーに該当するときだけ読みます。ルールはファイル別接頭辞＋3桁通し番号のID（例: `CR-024`）で識別します。
 
-## 判断レンズ（02_Roles）
+## 判断レンズᴳ（02_Roles）
 
-`02_Roles`は、判断を複数の専門家の観点（レンズ）から見るための共通資産です。重要な判断では、関連するレンズと批判者レンズ（`reviewer`）を併用してトレードオフを洗い出し、意見が割れたら判断軸（`_judgment-axis.md`）に照らして決めます。レンズは助言であり、最終判断は依頼者が下します。レンズ一覧や使い方は`~\Projects\02_Roles\README.md`、運用ルールは`CROSS_PROJECT_RULES.md`の「判断レンズ運用」を参照します。
+`02_Roles`は、判断を複数の専門家の観点（レンズ）から見るための共通資産です。要件・詳細設計・リファクタ後と、基本設計が最終設計成果物になる品質ゲートでは`reviewer`ᴳを使い、高リスク判断では関連レンズ2〜3個を追加してトレードオフを確認します。意見が割れたら判断軸（`_judgment-axis.md`）に照らし、最終判断は依頼者または依頼者が指定した承認者が下します。
 
 ## プロジェクト追加手順
 
@@ -115,14 +118,15 @@ npm start
 
 ## セッション引継ぎ
 
-通常のプロジェクトでは、`handover` ディレクトリに継続作業ログを2層で持ちます（`00_Template` では作成しません）。`~\Projects` 直下・`NN_` 配下の横断／非プロジェクト作業では2層ログを持たず、記録は `~\Projects\incident-log.md` に集約します（CR-068）。
+通常のプロジェクトでは、`handover` ディレクトリに継続作業ログを持ちます（`00_Template` では作成しません）。`~\Projects` 直下・`NN_` 配下の横断／非プロジェクト作業では継続ログを作らず、実施結果と未検証事項は最終報告に記載します。`incident-log.md`へ記録するのは失敗・指摘だけです（CR-068）。
 
-- `resume.md`: 現在の再開地点を1枚に上書き保存します（常に最新・短く保つ）。新規セッションは最初にこれを読みます
-- `worklog.md`: 作業履歴を追記専用で残します。チェックポイントᴳごとに追記するため、中断しても直前までの履歴が残ります
+- `resume.md`: 現在の再開地点を1枚に上書き保存します（常に最新・短く保つ）
+- `worklog.md`: 重要な作業差分・決定・検証結果を追記専用で残します
+- `handover-YYYY-MM-DD[-N].md`: タスクᴳ完了・長期中断・担当交代などの節目を要約します
 
-チェックポイントᴳごとに追記・最新化することで、任意の AI ツール・任意のセッションへ、任意の時点で引き継げます。
+同じ説明を複数文書へ重複記載せず、現在地点・証跡・節目要約を役割分担することで、任意のAIツール・セッションへ引き継げます。
 
-タスクᴳや機能の完了など節目では、その区間を要約した保全用の引継ぎファイルを作成します。
+タスクᴳや機能の完了、長期中断、担当交代などの節目では、その区間を要約した保全用の引継ぎファイルを作成します。
 
 ```text
 ~\Projects\<プロジェクト>\handover\handover-YYYY-MM-DD[-N].md

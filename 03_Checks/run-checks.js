@@ -7,22 +7,22 @@
  *   違反を検出する。各チェックと対応ルールIDの一覧は同階層の README.md を参照。
  *
  * 使い方:
- *   node 03_Checks/run-checks.js <対象ディレクトリ> [--check=doc-chars,unicode-escape,resume-freshness,glossary-terms]
+ *   node 03_Checks/run-checks.js <対象ディレクトリ> [--no-recursive] [--check=doc-chars,unicode-escape,resume-freshness,glossary-terms]
  *   例: node 03_Checks/run-checks.js .                    （Projects 全体）
- *       node 03_Checks/run-checks.js FF14_Fishing_Alert   （プロジェクト単位）
+ *       node 03_Checks/run-checks.js <プロジェクト>       （プロジェクト単位）
  *
  * 設定:
  *   <対象ディレクトリ>\check-config.json があれば読み込む（任意・例外設定用）。
  *   親ディレクトリから実行した場合、直下プロジェクトの check-config.json も統合する
- *   （例外の正はプロジェクト側に1箇所 = CR-064。二重管理しない）。スキーマは README.md を参照。
+ *   （例外の正ᴳはプロジェクト側に1箇所 = CR-064。二重管理しない）。スキーマは README.md を参照。
  *
  * 終了コード:
  *   0: 違反なし（警告のみの場合を含む）
- *   1: 違反あり
+ *   1: 違反あり、対象不正、または引数エラー
  *
  * 注意:
  *   Cowork サンドボックスからの実行はマウント読取の途切れ（CS-002・CS-004）で
- *   誤検出があり得る。正とするのは依頼者マシン（ローカル）での実行結果。
+ *   誤検出があり得る。正ᴳとするのは依頼者マシン（ローカル）での実行結果。
  */
 
 const fs = require('fs');
@@ -40,17 +40,28 @@ const EXCLUDE_DIRS = new Set([
   'coverage',
 ]);
 
+/** --check で指定できるチェック名 */
+const CHECK_NAMES = [
+  'doc-chars',
+  'unicode-escape',
+  'resume-freshness',
+  'glossary-terms',
+];
+
+/** 追記専用の履歴ファイル */
+const WORKLOG_FILE_RE = /^worklog(?:-\d{4}-\d{2}(?:-\d+)?)?\.md$/;
+
 /**
  * 違反として検出する文字（ハード違反）。名称は報告メッセージ用
- * 根拠: CR-024（全角スペース禁止）、CL-003 / AG-003 / MF-009（全角半角取り違え・破損点検）
+ * 根拠: CR-024（全角スペース禁止）、CR-071 / MF-009（全角半角取り違え・破損点検）
  */
 const HARD_CHARS = [
   { re: /　/g, name: '全角スペース(U+3000)', ruleId: 'CR-024' },
   { re: /[  -​]/g, name: '不可視スペース(U+00A0/U+2000-200B)', ruleId: 'CR-024' },
-  { re: /[０-９]/g, name: '全角数字', ruleId: 'CL-003' },
-  { re: /[Ａ-Ｚａ-ｚ]/g, name: '全角英字', ruleId: 'CL-003' },
-  { re: /～/g, name: '全角チルダ(U+FF5E)', ruleId: 'CL-003' },
-  { re: /�/g, name: '置換文字(U+FFFD)=破損疑い', ruleId: 'CL-003' },
+  { re: /[０-９]/g, name: '全角数字', ruleId: 'CR-071' },
+  { re: /[Ａ-Ｚａ-ｚ]/g, name: '全角英字', ruleId: 'CR-071' },
+  { re: /～/g, name: '全角チルダ(U+FF5E)', ruleId: 'CR-071' },
+  { re: /�/g, name: '置換文字(U+FFFD)=破損疑い', ruleId: 'CR-071' },
 ];
 
 /**
@@ -59,8 +70,8 @@ const HARD_CHARS = [
  * - 異体字・簡体字の混入疑い: 隨(U+96A8)/圈(U+5708)/暂(U+6682)。観測実績ベースの黒リスト
  */
 const WARN_CHARS = [
-  { re: /[＜＞]/g, name: '全角不等号（意図的使用か要目視）', ruleId: 'CL-003' },
-  { re: /[隨圈暂]/g, name: '異体字・簡体字の疑い（要目視）', ruleId: 'CL-003' },
+  { re: /[＜＞]/g, name: '全角不等号（意図的使用か要目視）', ruleId: 'CR-071' },
+  { re: /[隨圈暂]/g, name: '異体字・簡体字の疑い（要目視）', ruleId: 'CR-071' },
 ];
 
 /** Unicodeエスケープ検出用（unicode-escape チェック） */
@@ -142,19 +153,20 @@ function mergeDocCharsConfig(config, subConfigs) {
  * doc-chars: Markdown ドキュメントの禁止文字・破損疑い文字を検出する
  * @param {string} targetDir - 対象ディレクトリの絶対パス
  * @param {{excludePaths: string[], fileAllowedChars: Object}} docCharsConfig - 統合済み例外
+ * @param {boolean} recursive - サブディレクトリを走査するか
  * @return {{violations: string[], warnings: string[]}} 検出結果
  */
-function checkDocChars(targetDir, docCharsConfig) {
+function checkDocChars(targetDir, docCharsConfig, recursive) {
   const violations = [];
   const warnings = [];
   const files = collectFiles(
     targetDir,
-    // handover-*.md と worklog.md / worklog-YYYY-MM.md は追記専用の歴史記録（違反文字の引用を含む）のため既定で対象外
+    // handover-*.md と worklog.md / worklog-YYYY-MM[-N].md は追記専用の歴史記録（違反文字の引用を含む）のため既定で対象外
     (name) =>
       name.endsWith('.md') &&
       !/^handover-.*\.md$/.test(name) &&
-      !/^worklog(-\d{4}-\d{2})?\.md$/.test(name),
-    true
+      !WORKLOG_FILE_RE.test(name),
+    recursive
   );
 
   for (const filePath of files) {
@@ -195,9 +207,10 @@ function checkDocChars(targetDir, docCharsConfig) {
  * @param {string} baseDir - 設定の基準ディレクトリの絶対パス
  * @param {Object} config - 設定（unicodeEscape.targets / allowedEscapes）
  * @param {string} reportPrefix - 報告パスに付ける接頭辞（親実行時のプロジェクト名）
+ * @param {boolean} allowRecursive - 設定対象内の再帰走査を許可するか
  * @return {{violations: string[], warnings: string[]}} 検出結果
  */
-function checkUnicodeEscape(baseDir, config, reportPrefix) {
+function checkUnicodeEscape(baseDir, config, reportPrefix, allowRecursive) {
   const violations = [];
   const settings = config.unicodeEscape;
   if (!settings || !Array.isArray(settings.targets)) {
@@ -208,7 +221,7 @@ function checkUnicodeEscape(baseDir, config, reportPrefix) {
   for (const target of settings.targets) {
     const extensions = target.extensions || ['.js'];
     const dirPath = path.join(baseDir, ...target.dir.split('/'));
-    const recursive = target.recursive !== false;
+    const recursive = allowRecursive && target.recursive !== false;
     const files = collectFiles(
       dirPath,
       (name) => extensions.some((ext) => name.endsWith(ext)),
@@ -268,9 +281,10 @@ function loadGlossaryTerms() {
  * glossary-terms: 定義済み用語の目印 (U+1D33) が用語集にある語に付いているかを検査する
  * 定義の意味かは機械判定できないため付与漏れは検査しない（実在のみの逆向き検査。CR-067）
  * @param {string} targetDir - 対象ディレクトリの絶対パス
+ * @param {boolean} recursive - サブディレクトリを走査するか
  * @return {{violations: string[], warnings: string[]}} 検出結果
  */
-function checkGlossaryTerms(targetDir) {
+function checkGlossaryTerms(targetDir, recursive) {
   const violations = [];
   const terms = loadGlossaryTerms();
   if (terms.length === 0) return { violations, warnings: [] };
@@ -280,8 +294,8 @@ function checkGlossaryTerms(targetDir) {
     (name) =>
       name.endsWith('.md') &&
       !/^handover-.*\.md$/.test(name) &&
-      !/^worklog(-\d{4}-\d{2})?\.md$/.test(name),
-    true
+      !WORKLOG_FILE_RE.test(name),
+    recursive
   );
   for (const filePath of files) {
     const relPath = path.relative(targetDir, filePath).split(path.sep).join('/');
@@ -289,6 +303,15 @@ function checkGlossaryTerms(targetDir) {
     lines.forEach((lineText, lineIndex) => {
       for (let idx = lineText.indexOf(MARK); idx !== -1; idx = lineText.indexOf(MARK, idx + 1)) {
         const before = lineText.slice(0, idx);
+        const inlineCode = before.match(/(`+)([^`\r\n]+)\1$/);
+        if (inlineCode) {
+          if (!terms.includes(inlineCode[2])) {
+            violations.push(
+              `${relPath}:${lineIndex + 1}:${idx + 1}: [glossary-terms] 用語集にない語に目印 (U+1D33) が付与されている（CR-067）`
+            );
+          }
+          continue;
+        }
         const prevChar = before.slice(-1);
         // 直前が語構成文字でなければ目印ではなく字としての言及（記法定義・引用）とみなし対象外
         if (!prevChar || !/[\p{L}\p{N}-]/u.test(prevChar)) continue;
@@ -305,18 +328,19 @@ function checkGlossaryTerms(targetDir) {
 
 /**
  * resume-freshness: resume.md の更新時刻の記載が worklog.md より古くないかを検知する
- * 時刻はローカルタイムゾーン前提のため、依頼者マシンでの実行を正とし警告のみとする（CR-054）
+ * 時刻はローカルタイムゾーン前提のため、依頼者マシンでの実行を正ᴳとし警告のみとする（CR-054）
  * @param {string} targetDir - 対象ディレクトリの絶対パス
+ * @param {boolean} recursive - 直下プロジェクトの handover も探索するか
  * @return {{violations: string[], warnings: string[]}} 検出結果
  */
-function checkResumeFreshness(targetDir) {
+function checkResumeFreshness(targetDir, recursive) {
   const warnings = [];
   const handoverDirs = [];
 
   const directHandover = path.join(targetDir, 'handover');
   if (fs.existsSync(directHandover)) {
     handoverDirs.push(directHandover);
-  } else {
+  } else if (recursive) {
     for (const entry of fs.readdirSync(targetDir, { withFileTypes: true })) {
       if (!entry.isDirectory() || EXCLUDE_DIRS.has(entry.name)) continue;
       if (entry.name === '00_Template') continue;
@@ -360,45 +384,89 @@ function checkResumeFreshness(targetDir) {
  */
 function main() {
   const args = process.argv.slice(2);
-  const positional = args.filter((arg) => !arg.startsWith('--'));
-  if (positional.length !== 1) {
-    console.error('使い方: node 03_Checks/run-checks.js <対象ディレクトリ> [--check=doc-chars,unicode-escape,resume-freshness,glossary-terms]');
+  const unknownOptions = args.filter(
+    (arg) =>
+      arg.startsWith('--') &&
+      arg !== '--no-recursive' &&
+      !arg.startsWith('--check=')
+  );
+  if (unknownOptions.length > 0) {
+    console.error(`引数エラー: 不明なオプション「${unknownOptions.join(', ')}」`);
     process.exit(1);
   }
+
+  const positional = args.filter((arg) => !arg.startsWith('--'));
+  if (positional.length !== 1) {
+    console.error('使い方: node 03_Checks/run-checks.js <対象ディレクトリ> [--no-recursive] [--check=doc-chars,unicode-escape,resume-freshness,glossary-terms]');
+    process.exit(1);
+  }
+
   const targetDir = path.resolve(positional[0]);
-  const checkArg = args.find((arg) => arg.startsWith('--check='));
-  const enabled = checkArg
-    ? new Set(checkArg.replace('--check=', '').split(','))
-    : new Set(['doc-chars', 'unicode-escape', 'resume-freshness', 'glossary-terms']);
+  if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) {
+    console.error(`対象エラー: ディレクトリが存在しない「${positional[0]}」`);
+    process.exit(1);
+  }
+
+  const checkArgs = args.filter((arg) => arg.startsWith('--check='));
+  if (checkArgs.length > 1) {
+    console.error('引数エラー: --check は1回だけ指定する');
+    process.exit(1);
+  }
+  const checkArg = checkArgs[0];
+  const requested = checkArg
+    ? checkArg.slice('--check='.length).split(',').map((name) => name.trim())
+    : CHECK_NAMES;
+  const unknownChecks = requested.filter(
+    (name) => !name || !CHECK_NAMES.includes(name)
+  );
+  if (unknownChecks.length > 0) {
+    const display = unknownChecks.map((name) => name || '(空)').join(', ');
+    console.error(
+      `引数エラー: 不明なチェック「${display}」。指定可能: ${CHECK_NAMES.join(', ')}`
+    );
+    process.exit(1);
+  }
+
+  const enabled = new Set(requested);
+  const recursive = !args.includes('--no-recursive');
 
   const config = loadConfig(targetDir);
-  const subConfigs = collectSubConfigs(targetDir);
+  const subConfigs = recursive ? collectSubConfigs(targetDir) : [];
   const allViolations = [];
   const allWarnings = [];
 
   if (enabled.has('doc-chars')) {
-    const result = checkDocChars(targetDir, mergeDocCharsConfig(config, subConfigs));
+    const result = checkDocChars(
+      targetDir,
+      mergeDocCharsConfig(config, subConfigs),
+      recursive
+    );
     allViolations.push(...result.violations);
     allWarnings.push(...result.warnings);
   }
   if (enabled.has('unicode-escape')) {
-    const result = checkUnicodeEscape(targetDir, config, '');
+    const result = checkUnicodeEscape(targetDir, config, '', recursive);
     allViolations.push(...result.violations);
     allWarnings.push(...result.warnings);
     // 親実行時は直下プロジェクトの unicode-escape 設定も実行する
     for (const { name, config: subConfig } of subConfigs) {
-      const subResult = checkUnicodeEscape(path.join(targetDir, name), subConfig, `${name}/`);
+      const subResult = checkUnicodeEscape(
+        path.join(targetDir, name),
+        subConfig,
+        `${name}/`,
+        recursive
+      );
       allViolations.push(...subResult.violations);
       allWarnings.push(...subResult.warnings);
     }
   }
   if (enabled.has('resume-freshness')) {
-    const result = checkResumeFreshness(targetDir);
+    const result = checkResumeFreshness(targetDir, recursive);
     allViolations.push(...result.violations);
     allWarnings.push(...result.warnings);
   }
   if (enabled.has('glossary-terms')) {
-    const result = checkGlossaryTerms(targetDir);
+    const result = checkGlossaryTerms(targetDir, recursive);
     allViolations.push(...result.violations);
     allWarnings.push(...result.warnings);
   }
