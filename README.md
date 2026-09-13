@@ -29,7 +29,7 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
 ├─ incident-log.md              # 横断作業の失敗・指摘台帳
 ├─ 00_Template
 │  ├─ PROJECT_RULES.md
-│  ├─ handover          # resume.md / worklog.md の雛形
+│  ├─ handover                    # resume / worklog / 節目handoverの雛形
 │  └─ repository-template        # 独立したGitリポジトリ
 ├─ 01_Docs_Portal                # ローカル横断閲覧用Docusaurus
 ├─ 02_Roles                      # 判断のための観点レンズ集
@@ -48,7 +48,7 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
       └─ .github\workflows
 ```
 
-`00_Template`は新規プロジェクトの雛形（コピー元）です。横断ルールは`Projects`直下と`04_Rules_Reference\`で保守します。`handover\`には空の雛形（`resume.md`・`worklog.md`）だけを置き、実際の引継ぎ記録は保守作業では作成しません。
+`00_Template`は新規プロジェクトの雛形（コピー元）です。横断ルールは`Projects`直下と`04_Rules_Reference\`で保守します。`handover\`には空の雛形（`resume.md`・`worklog.md`・`handover-template.md`）だけを置き、実際の引継ぎ記録は保守作業では作成しません。
 
 ## ルールファイル
 
@@ -60,7 +60,7 @@ git clone https://github.com/game-chiyan/repository-template.git 00_Template\rep
 - `04_Rules_Reference\`: セッションフェーズᴳ、用語集、失敗台帳雛形、MCPファイル操作、Coworkサンドボックス、オーケストレーション等の詳細
 - `incident-log.md`: プロジェクトに属さない横断作業で発生した失敗・指摘の台帳
 
-AIツールは対応する入口ファイルと`CROSS_PROJECT_RULES.md`を読みます。特定プロジェクトが対象の場合だけ`PROJECT_RULES.md`と`resume.md`を追加で読み、handoverᴳ・`worklog.md`は詳細確認が必要なときだけ参照します。状況別資料は`04_Rules_Reference\README.md`の参照トリガーに該当するときだけ読みます。ルールはファイル別接頭辞＋3桁通し番号のID（例: `CR-024`）で識別します。
+AIツールは対応する入口ファイルと`CROSS_PROJECT_RULES.md`を読みます。特定プロジェクトが対象の場合だけ`PROJECT_RULES.md`と`resume.md`を追加で読みます。継続中タスク、再開用プロンプト、または続行指示がある場合は`session-phases.md`の再開手続きᴳに従い、指定handoverᴳ・タスク文書・必要時の`worklog.md`末尾を確認します。状況別資料は`04_Rules_Reference\README.md`の参照トリガーに該当するときだけ読みます。ルールはファイル別接頭辞＋3桁通し番号のID（例: `CR-024`）で識別します。
 
 ## 判断レンズᴳ（02_Roles）
 
@@ -68,7 +68,7 @@ AIツールは対応する入口ファイルと`CROSS_PROJECT_RULES.md`を読み
 
 ## プロジェクト追加手順
 
-1. `00_Template`を`~\Projects\<プロジェクト>\`へコピーする（`repository-template`は除く）。これで`PROJECT_RULES.md`と`handover\`（`resume.md`・`worklog.md`の雛形）が揃う
+1. `00_Template`を`~\Projects\<プロジェクト>\`へコピーする（`repository-template`は除く）。これで`PROJECT_RULES.md`と`handover\`（`resume.md`・`worklog.md`・節目handoverᴳの雛形）が揃う
 2. コピーした`PROJECT_RULES.md`をプロジェクト用に記入する
 3. [game-chiyan/repository-template](https://github.com/game-chiyan/repository-template)の`Use this template`から新しいリポジトリを作成する
 4. 作成したリポジトリを`~\Projects\<プロジェクト>\<リポジトリ>\`へcloneする
@@ -116,20 +116,22 @@ npm start
 ~\Projects\<プロジェクト>\PROJECT_RULES.md
 ```
 
-## セッション引継ぎ
+## セッション遷移と引継ぎ
 
 通常のプロジェクトでは、`handover` ディレクトリに継続作業ログを持ちます（`00_Template` では作成しません）。`~\Projects` 直下・`NN_` 配下の横断／非プロジェクト作業では継続ログを作らず、実施結果と未検証事項は最終報告に記載します。`incident-log.md`へ記録するのは失敗・指摘だけです（CR-068）。
 
 - `resume.md`: 現在の再開地点を1枚に上書き保存します（常に最新・短く保つ）
 - `worklog.md`: 重要な作業差分・決定・検証結果を追記専用で残します
-- `handover-YYYY-MM-DD[-N].md`: タスクᴳ完了・長期中断・担当交代などの節目を要約します
+- `handover-YYYY-MM-DD[-N].md`: タスクᴳ完了・長期中断・担当交代などの節目を要約し、タスク途中の引継ぎでは末尾に再開用プロンプトを保存します
 
 同じ説明を複数文書へ重複記載せず、現在地点・証跡・節目要約を役割分担することで、任意のAIツール・セッションへ引き継げます。
 
-タスクᴳや機能の完了、長期中断、担当交代などの節目では、その区間を要約した保全用の引継ぎファイルを作成します。
+セッション開始時は開始手続きᴳを行い、継続中タスクがあれば再開手続きᴳへ進みます。再開用プロンプトがない、不完全、または実状態と一致しない場合は復旧再開として、`resume.md`、最新handoverᴳ、`worklog.md`末尾、task-recordsᴳ、Git状態、変更済み・新規ファイルから現状をread-onlyで復元します。復元結果は`確認済み`・`推定`・`不明`に分け、初回復元中は編集・test・Git／ref変更・削除・外部操作を行いません。
+
+タスクᴳ途中の長期中断、担当・AIツール交代などの節目では引継手続きᴳを行い、その区間を要約した保全用の引継ぎファイルを作成します。短い同一文脈の中断では節目handoverᴳや再開用プロンプトを作らず、`resume.md`と`worklog.md`のチェックポイントだけを更新します。タスクᴳが完了した場合は終了手続きᴳを行います。
 
 ```text
 ~\Projects\<プロジェクト>\handover\handover-YYYY-MM-DD[-N].md
 ```
 
-保全用ファイルには、完了事項・次タスクᴳの作業順・未解決事項・運用ノートを記載します。`00_Template` の保守作業では作成しません。
+保全用ファイルには、現在タスクᴳ・フェーズᴳ、Git・ファイル状態、完了事項、途中状態、検証、未解決事項、権限境界、次のexact filesと作業順を記載します。タスク途中の引継ぎでは、AI向け入口からのexact paths付き読み順とread-only停止条件を含む再開用プロンプトを末尾へ保存し、依頼者にも同文を提示します。`00_Template` の保守作業では実記録を作成しません。

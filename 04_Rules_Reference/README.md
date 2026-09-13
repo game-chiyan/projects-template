@@ -11,8 +11,10 @@
 | `CROSS_PROJECT_RULES.md` | 規範コア | 適用条件、必須行動、優先順位、確認境界 | `AGENTS.md` / `CLAUDE.md` |
 | 本書 | 規範索引 | 文書の役割、正ᴳ、参照トリガー | CR-072 |
 | `glossary.md` | 規範用語集 | 定義済み用語の意味と ᴳ の記法 | CR-067 |
-| `session-phases.md` | 規範手順 | タスクᴳ種別、適用経路、開発フェーズᴳ、成果物、DoDᴳ | CR-049 / CR-050 / CR-065 |
+| `session-phases.md` | 規範手順 | 開始・再開・引継・終了手続きᴳ、再開記録、タスクᴳ種別、適用経路、開発フェーズᴳ、成果物、DoDᴳ | CR-048 / CR-049 / CR-050 / CR-054 / CR-056 / CR-057 / CR-058 / CR-065 / CR-093 / CR-094 |
+| `evidence-verification.md` | 規範手順 | 一次根拠と期待値、実行前の副作用確認、計数、自作検証、外部契約の証拠と進行条件 | CR-069 / CR-073 / CR-076 / CR-084 / CR-085 / CR-086 |
 | `session-phase-templates\*.md` | 規範様式 | `session-phases.md` が要求する成果物の記入構造 | `session-phases.md` |
+| `00_Template\handover\*.md` | 規範様式 | `resume.md`、`worklog.md`、節目handoverᴳと再開用プロンプトの記入構造 | CR-052〜CR-059 / CR-093 / CR-094 |
 | `orchestration.md` | 状況別規範 | サブエージェントの分解、委譲、統合、独立監査 | CR-034 / 各入口 |
 | `mcp-file-ops.md` | 状況別規範 | MCP filesystem を使う場合のファイル操作 | ツール入口 |
 | `cowork-sandbox.md` | 状況別規範 | Cowork サンドボックスで作業する場合の制約 | Claude入口 |
@@ -27,7 +29,8 @@
 
 | 状況 | 追加で読む文書 |
 | --- | --- |
-| タスクᴳを開始する、タスクᴳ種別・工程・DoDᴳを判定する | `session-phases.md` |
+| セッションを開始・再開・引継・終了する、チェックポイントᴳ・再開記録を更新する、またはタスクᴳ種別・工程・DoDᴳを判定する | `session-phases.md` |
+| 根拠・期待値を記述する、過去手順を再利用する、package scripts・wrapper・検証commandを実行する、計数する、自作検証を使う、外部契約を確認する | `evidence-verification.md` の該当節 |
 | ᴳ 付き用語を使う、意味や付与要否を確認する | `glossary.md` |
 | サブエージェントで並列化・専門分離・独立監査を行う | `orchestration.md` |
 | MCP filesystem でファイルを操作する | `mcp-file-ops.md` |

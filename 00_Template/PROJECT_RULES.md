@@ -1,7 +1,7 @@
 # PROJECT_RULES.md（<プロジェクト名> プロジェクト固有ルール）
 
-- 先に横断ルール `~\Projects\CROSS_PROJECT_RULES.md` を読むこと。記載が矛盾する場合は本書が優先する
-- AIツール別の入口は `~\Projects\AGENTS.md` / `~\Projects\CLAUDE.md` を読むこと
+- 使用中AIツールに対応する入口 `~\Projects\AGENTS.md` / `~\Projects\CLAUDE.md` → 横断ルール `~\Projects\CROSS_PROJECT_RULES.md` → 本書の順に読むこと。記載が矛盾する場合は上位ルールの優先順位に従う
+- 本書の後に `handover\resume.md`（あれば）を読むこと。継続中タスク、再開用プロンプト、または続行指示がある場合は `~\Projects\04_Rules_Reference\session-phases.md` の再開手続きᴳに従う
 - リポジトリ: <リポジトリURL>
 
 ## PROJECT_RULES.md を育てるルール（メタルール）
